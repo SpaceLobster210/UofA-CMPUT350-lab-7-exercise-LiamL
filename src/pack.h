@@ -29,9 +29,10 @@ struct _packIndexToType<0, Arg, Args...> {
 };
 
 template <int QueryIndex, typename Arg, typename... Args>
-    requires(QueryIndex >= 0)
+    //requires(QueryIndex >= 0)
 struct _packIndexToType<QueryIndex, Arg, Args...> {
     // non-empty args and non-zero index -- iterate over on list, decrementing index.
+    static_assert(QueryIndex >= 0);
     using type = typename _packIndexToType<QueryIndex - 1, Args...>::type;
 };
 
@@ -68,7 +69,8 @@ struct Pack {
 
     // (f)
     template <int QueryIndex>
-        requires((QueryIndex >= 0) && (QueryIndex < size))
+    //    requires((QueryIndex >= 0) && (QueryIndex < size))
+        
     using type = pack_detail::packIndexToType<QueryIndex, Args...>;
 
     // Trivial addition:

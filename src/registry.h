@@ -18,6 +18,7 @@ class Registry {
             }
             else {
                 components.push_back(entity);
+                deletedEntities.push_back(false);
                 compLength += 1;
                 return compLength - 1;
             }
@@ -33,6 +34,7 @@ class Registry {
             }
             else {
                 components.push_back(entity);
+                deletedEntities.push_back(false);
                 compLength += 1;
                 return compLength - 1;
             }
@@ -69,8 +71,8 @@ class Registry {
 
 
     private:
-        std::Vector<std::shared_ptr<T>> components; // Stored entity components
-        std::Vector<bool> deletedEntities; // List of the indexes of entities that have been removed
+        std::vector<std::shared_ptr<T>> components; // Stored entity components
+        std::vector<bool> deletedEntities; // List of the indexes of entities that have been removed
         size_t compLength = 0; // Length of the components vector, including inactive entities
 
 };
