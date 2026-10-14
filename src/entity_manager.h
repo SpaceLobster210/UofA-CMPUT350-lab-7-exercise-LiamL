@@ -27,7 +27,6 @@ class EntityManager {
         // Returns the next available entity ID and updates deletedIDs
         EntityID createEntity() {
             auto dEnt = find(deletedIDs.begin(), deletedIDs.end(), true);
-            size_t index = dEnt - deletedIDs.begin();
 
             // Initialize components to ivalidCompIndex
             if (dEnt == deletedIDs.end()) {
@@ -35,15 +34,17 @@ class EntityManager {
                     mComponentMap.push_back(invalidCompIndex);
                 }
                 deletedIDs.push_back(false);
+                return deletedIDs.size() - 1;
             }
             else {
+                size_t index = dEnt - deletedIDs.begin();
+
                 for (size_t i = 0; i < numComponents; ++i) {
                     mComponentMap[(index * numComponents) + i] = invalidCompIndex;
                 }
                 deletedIDs[index] = false;
+                return index;
             }
-
-            return index;
         }
 
         // Return true iff the EntityID is currently alive

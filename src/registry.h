@@ -35,12 +35,12 @@ class Registry {
 
             if (dEnt != deletedEntities.end()) {
                 size_t index = dEnt - deletedEntities.begin();
-                components[index] = std::move(entity);
+                components[index] = std::make_shared<T>(std::move(entity));
                 deletedEntities[index] = false;
                 return index;
             }
             else {
-                components.push_back(std::move(entity));
+                components.push_back(std::make_shared<T>(std::move(entity)));
                 deletedEntities.push_back(false);
                 compLength += 1;
                 return compLength - 1;
