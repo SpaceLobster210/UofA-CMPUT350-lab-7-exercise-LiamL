@@ -6,6 +6,7 @@
 #include <cstddef>  // size_t
 #include <limits>
 #include <vector>
+#include <cassert>
 
 #include "pack.h"  // Pack from prep
 
@@ -27,11 +28,19 @@ class EntityManager {
         EntityID createEntity() {
             auto dEnt = find(deletedIDs.begin(), deletedIDs.end(), true);
             size_t index = dEnt - deletedIDs.begin();
-            deletedIDs[index] = false;
 
             // Initialize components to ivalidCompIndex
-            for (size_t i = 0; i < numComponents; ++i) {
-                mComponentMap[(index * numComponents) + i] = invalidCompIndex;
+            if (dEnt == deletedIDs.end()) {
+                for (size_t i = 0; i < numComponents; ++i) {
+                    mComponentMap.push_back(invalidCompIndex);
+                }
+                deletedIDs.push_back(false);
+            }
+            else {
+                for (size_t i = 0; i < numComponents; ++i) {
+                    mComponentMap[(index * numComponents) + i] = invalidCompIndex;
+                }
+                deletedIDs[index] = false;
             }
 
             return index;
@@ -48,24 +57,24 @@ class EntityManager {
         // Return true iff entity has a component of the given type
         template <typename ComponentType>
         bool hasComponent(EntityID e) {
-            return (mapComponent<ComponentType>(e) != invalidCompIndex);
+            return (mComponentMap[mapComponent<ComponentType>(e)] != invalidCompIndex);
         }
 
         // Gets a reference to the component of ComponentType, if it exists
         template <typename ComponentType>
         ComponentType& getComponent(EntityID e) {
-            static_assert(hasComponent<ComponentType>(e), "Entity does not have component of given type.");
+            assert(hasComponent<ComponentType>(e));
 
-            return mRegistries[pack_detail::packTypeToIndex<ComponentType, ComponentTypes...>][mComponentMap[mapComponent<ComponentType>(e)]];
+            return std::get<Registry<ComponentType>>(mRegistries)[mComponentMap[mapComponent<ComponentType>(e)]];
         }
 
         // Add a new component to an entity, if it does not already have that component
         template <typename ComponentType>
         void addComponent(EntityID id, ComponentType&& component) {
-            static_assert(!(getComponent<ComponentType>(id)), "Entity already has component of given type.");
+            assert(!(hasComponent<ComponentType>(id)));
 
-            mRegistries[pack_detail::packTypeToIndex<ComponentType, ComponentTypes...>][mComponentMap[mapComponent<ComponentType>(id)]] = 
-                            std::remove_reference_t<ComponentType> (std::forward<ComponentType>(component));
+            size_t registryIndex = std::get<Registry<std::remove_reference_t<ComponentType>>>(mRegistries).store(std::forward<ComponentType>(component));
+            mComponentMap[mapComponent<std::remove_reference_t<ComponentType>>(id)] = registryIndex;
         }
 
     private:
